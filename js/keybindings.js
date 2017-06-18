@@ -113,8 +113,14 @@ ipc.on('goForward', function () {
   } catch (e) { }
 })
 
+var menuBarShortcuts = ['mod+t', 'shift+mod+p', 'mod+n'] // shortcuts that are already used for menu bar items
+
 function defineShortcut (keyMapName, fn) {
   Mousetrap.bind(keyMap[keyMapName], function (e, combo) {
+    // these shortcuts are already used by menu bar items, so also using them here would result in actions happening twice
+    if (menuBarShortcuts.indexOf(combo) !== -1) {
+      return
+    }
     // mod+left and mod+right are also text editing shortcuts, so they should not run when an input field is focused
     if (combo === 'mod+left' || combo === 'mod+right') {
       getWebview(tabs.getSelected()).executeJavaScript('document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA"', function (isInputFocused) {
@@ -150,6 +156,30 @@ settings.get('keyMap', function (keyMapSettings) {
     closeTab(tabs.getSelected())
 
     return false
+  })
+
+  defineShortcut('restoreTab', function (e) {
+    if (isFocusMode) {
+      showFocusModeError()
+      return
+    }
+
+    var restoredTab = window.currentTask.tabHistory.pop()
+
+    // The tab history stack is empty
+    if (!restoredTab) {
+      return
+    }
+
+    if (isEmpty(tabs.get())) {
+      destroyTab(tabs.getAtIndex(0).id)
+    }
+
+    addTab(tabs.add(restoredTab, tabs.getIndex(tabs.getSelected()) + 1), {
+      focus: false,
+      leaveEditMode: true,
+      enterEditMode: false
+    })
   })
 
   defineShortcut('addToFavorites', function (e) {
@@ -191,7 +221,9 @@ settings.get('keyMap', function (keyMapSettings) {
     taskOverlay.hide()
     leaveTabEditMode()
 
-    getWebview(tabs.getSelected()).focus()
+    if (document.activeElement !== getWebview(tabs.getSelected())) {
+      getWebview(tabs.getSelected()).focus()
+    }
   })
 
   defineShortcut('toggleReaderView', function () {
