@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const app = electron.app // Module to control application life.
 const BrowserWindow = electron.BrowserWindow // Module to create native browser window.
+const localShortcut = require('electron-localshortcut')
 const ipc = electron.ipcMain
 
 var userDataPath = app.getPath('userData')
@@ -261,31 +262,39 @@ function createAppMenu () {
       submenu: [
         {
           label: 'New Tab',
-          accelerator: 'CmdOrCtrl+t',
+          accelerator: 'CmdOrCtrl+T',
           click: function (item, window) {
             sendIPCToWindow(window, 'addTab')
           }
         },
         {
           label: 'New Private Tab',
-          accelerator: 'shift+CmdOrCtrl+p',
+          accelerator: 'Shift+CmdOrCtrl+T',
           click: function (item, window) {
             sendIPCToWindow(window, 'addPrivateTab')
           }
         },
         {
           label: 'New Task',
-          accelerator: 'CmdOrCtrl+n',
+          accelerator: 'CmdOrCtrl+N',
           click: function (item, window) {
             sendIPCToWindow(window, 'addTask')
           }
         },
         {
+          label: 'Close Tab',
+          accelerator: 'CmdOrCtrl+W',
+          click: function (item, window) {
+            sendIPCToWindow(window, 'closeTab')
+          }
+        },
+
+        {
           type: 'separator'
         },
         {
           label: 'Save Page As',
-          accelerator: 'CmdOrCtrl+s',
+          accelerator: 'CmdOrCtrl+S',
           click: function (item, window) {
             sendIPCToWindow(window, 'saveCurrentPage')
           }
@@ -295,7 +304,7 @@ function createAppMenu () {
         },
         {
           label: 'Print',
-          accelerator: 'CmdOrCtrl+p',
+          accelerator: 'CmdOrCtrl+P',
           click: function (item, window) {
             sendIPCToWindow(window, 'print')
           }
@@ -458,7 +467,7 @@ function createAppMenu () {
         },
         {
           label: 'Close',
-          accelerator: 'CmdOrCtrl+W',
+          accelerator: 'CmdOrCtrl+Shift+W',
           role: 'close'
         }
       ]
@@ -581,7 +590,20 @@ function createAppMenu () {
   if (process.platform === 'darwin') {
     Menu.setApplicationMenu(mainMenu)
   } else {
+    installMenuShortcuts(mainMenu)
     Menu.setApplicationMenu(null)
+  }
+}
+
+function installMenuShortcuts (menu) {
+  if (menu.items) for (var item of menu.items) {
+    if (item.accelerator) {
+      localShortcut.register(mainWindow, item.accelerator, item.click)
+    }
+
+    if (item.submenu) for(var submenuItem of item.submenu.items){
+      installMenuShortcuts(submenuItem.menu)
+    }
   }
 }
 

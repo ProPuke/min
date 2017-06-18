@@ -1,6 +1,36 @@
 var navbar = document.getElementById('navbar')
 var tabContainer = document.getElementById('tabs')
 
+var navbarTabClicked = null;
+var navbarTabMenu = Menu.buildFromTemplate([
+  {
+    label: 'New Tab',
+    accelerator: 'CmdOrCtrl+T',
+    click: function (item, window) {
+      var newTab = tabs.add({}, tabs.getIndex(tabs.getSelected()) + 1)
+      addTab(newTab)
+    }
+  },
+  {
+    label: 'New Private Tab',
+    accelerator: 'Shift+CmdOrCtrl+T',
+    click: function (item, window) {
+      var newTab = tabs.add({private: true}, tabs.getIndex(tabs.getSelected()) + 1)
+      addTab(newTab)
+    }
+  },
+  {
+    type: 'separator'
+  },
+  {
+    label: 'Close Tab',
+    accelerator: 'CmdOrCtrl+W',
+    click: function (item, window) {
+      closeTab(navbarTabClicked)
+    }
+  }
+])
+
 /* tab events */
 
 var lastTabDeletion = 0
@@ -161,10 +191,6 @@ function createTabElement (data) {
   closeTabButton.classList.add('fa')
   closeTabButton.classList.add('fa-times-circle')
 
-  closeTabButton.addEventListener('mousedown', function (e) {
-    e.stopPropagation()
-  })
-
   closeTabButton.addEventListener('click', function (e) {
     closeTab(data.id)
 
@@ -245,13 +271,24 @@ function createTabElement (data) {
 
   // click to enter edit mode or switch to a tab
   tabEl.addEventListener('click', function (e) {
-    if (e.which === 2) { // if mouse middle click -> close tab
-      closeTab(data.id)
-    } else if (tabs.getSelected() !== data.id) { // else switch to tab if it isn't focused
+    if (tabs.getSelected() !== data.id) { // else switch to tab if it isn't focused
       switchToTab(data.id)
     } else { // the tab is focused, edit tab instead
       enterEditMode(data.id)
     }
+  })
+
+  tabEl.addEventListener('auxclick', function (e) {
+    if (e.which === 2) { // if mouse middle click -> close tab
+      closeTab(data.id)
+    }
+  })
+
+  tabEl.addEventListener('contextmenu', function (e) {
+    navbarTabClicked = data.id;
+    navbarTabMenu.popup({
+      async: true
+    });
   })
 
   tabEl.addEventListener('mousewheel', function (e) {
