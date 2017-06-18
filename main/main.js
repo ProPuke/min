@@ -256,334 +256,500 @@ function createAppMenu () {
   var Menu = electron.Menu
   var MenuItem = electron.MenuItem
 
-  var template = [
-    {
-      label: 'File',
-      submenu: [
-        {
-          label: 'New Tab',
-          accelerator: 'CmdOrCtrl+T',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'addTab')
-          }
-        },
-        {
-          label: 'New Private Tab',
-          accelerator: 'Shift+CmdOrCtrl+T',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'addPrivateTab')
-          }
-        },
-        {
-          label: 'New Task',
-          accelerator: 'CmdOrCtrl+N',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'addTask')
-          }
-        },
-        {
-          label: 'Close Tab',
-          accelerator: 'CmdOrCtrl+W',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'closeTab')
-          }
-        },
-
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Save Page As',
-          accelerator: 'CmdOrCtrl+S',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'saveCurrentPage')
-          }
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Print',
-          accelerator: 'CmdOrCtrl+P',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'print')
-          }
-        }
-      ]
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        {
-          label: 'Undo',
-          accelerator: 'CmdOrCtrl+Z',
-          role: 'undo'
-        },
-        {
-          label: 'Redo',
-          accelerator: 'Shift+CmdOrCtrl+Z',
-          role: 'redo'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Cut',
-          accelerator: 'CmdOrCtrl+X',
-          role: 'cut'
-        },
-        {
-          label: 'Copy',
-          accelerator: 'CmdOrCtrl+C',
-          role: 'copy'
-        },
-        {
-          label: 'Paste',
-          accelerator: 'CmdOrCtrl+V',
-          role: 'paste'
-        },
-        {
-          label: 'Select All',
-          accelerator: 'CmdOrCtrl+A',
-          role: 'selectall'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Find',
-          accelerator: 'CmdOrCtrl+F',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'findInPage')
-          }
-        }
-      ]
-    },
-    /* these items are added by os x */
-    {
-      label: 'View',
-      submenu: [
-        {
-          label: 'Zoom in',
-          accelerator: 'CmdOrCtrl+=',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'zoomIn')
-          }
-        },
-        {
-          label: 'Zoom out',
-          accelerator: 'CmdOrCtrl+-',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'zoomOut')
-          }
-        },
-        {
-          label: 'Actual size',
-          accelerator: 'CmdOrCtrl+0',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'zoomReset')
-          }
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Full Screen',
-          accelerator: (function () {
-            if (process.platform == 'darwin')
-              return 'Ctrl+Command+F'
-            else
-              return 'F11'
-          })(),
-          role: 'togglefullscreen'
-        },
-        {
-          label: 'Focus mode',
-          accelerator: undefined,
-          type: 'checkbox',
-          checked: false,
-          click: function (item, window) {
-            if (isFocusMode) {
-              item.checked = false
-              isFocusMode = false
-              sendIPCToWindow(window, 'exitFocusMode')
-            } else {
-              item.checked = true
-              isFocusMode = true
-              sendIPCToWindow(window, 'enterFocusMode')
-            }
-          }
-        },
-        {
-          label: 'Reading List',
-          accelerator: undefined,
-          click: function (item, window) {
-            sendIPCToWindow(window, 'showReadingList')
-          }
-        }
-      ]
-    },
-    {
-      label: 'Developer',
-      submenu: [
-        {
-          label: 'Reload Browser',
-          accelerator: undefined,
-          click: function (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.reload()
-          }
-        },
-        {
-          label: 'Inspect browser',
-          click: function (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.toggleDevTools()
-          }
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Inspect page',
-          accelerator: (function () {
-            if (process.platform == 'darwin')
-              return 'Cmd+Alt+I'
-            else
-              return 'Ctrl+Shift+I'
-          })(),
-          click: function (item, window) {
-            sendIPCToWindow(window, 'inspectPage')
-          }
-        }
-      ]
-    },
-    {
-      label: 'Window',
-      role: 'window',
-      submenu: [
-        {
-          label: 'Minimize',
-          accelerator: 'CmdOrCtrl+M',
-          role: 'minimize'
-        },
-        {
-          label: 'Close',
-          accelerator: 'CmdOrCtrl+Shift+W',
-          role: 'close'
-        }
-      ]
-    },
-    {
-      label: 'Help',
-      role: 'help',
-      submenu: [
-        {
-          label: 'Keyboard Shortcuts',
-          click: function () {
-            openTabInWindow('https://github.com/minbrowser/min/wiki#keyboard-shortcuts')
-          }
-        },
-        {
-          label: 'Report a Bug',
-          click: function () {
-            openTabInWindow('https://github.com/minbrowser/min/issues/new')
-          }
-        },
-        {
-          label: 'Take a Tour',
-          click: function () {
-            openTabInWindow('https://minbrowser.github.io/min/tour/')
-          }
-        },
-        {
-          label: 'View on GitHub',
-          click: function () {
-            openTabInWindow('https://github.com/minbrowser/min')
-          }
-        }
-      ]
-    }
-  ]
+  // preferences item on linux and windows
 
   if (process.platform === 'darwin') {
     var name = app.getName()
-    template.unshift({
-      label: name,
-      submenu: [
-        {
-          label: 'About ' + name,
-          role: 'about'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Preferences',
-          accelerator: 'CmdOrCtrl+,',
-          click: function (item, window) {
-            sendIPCToWindow(window, 'addTab', {
-              url: 'file://' + __dirname + '/pages/settings/index.html'
-            })
+
+    var template = [
+      {
+        label: name,
+        submenu: [
+          {
+            label: 'About ' + name,
+            role: 'about'
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Preferences',
+            accelerator: 'CmdOrCtrl+,',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'addTab', {
+                url: 'file://' + __dirname + '/pages/settings/index.html'
+              })
+            }
+          },
+          {
+            label: 'Services',
+            role: 'services',
+            submenu: []
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Hide ' + name,
+            accelerator: 'CmdOrCtrl+H',
+            role: 'hide'
+          },
+          {
+            label: 'Hide Others',
+            accelerator: 'CmdOrCtrl+Shift+H',
+            role: 'hideothers'
+          },
+          {
+            label: 'Show All',
+            role: 'unhide'
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Quit',
+            accelerator: 'CmdOrCtrl+Q',
+            click: function () {
+              app.quit()
+            }
           }
-        },
-        {
-          label: 'Services',
-          role: 'services',
-          submenu: []
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Hide ' + name,
-          accelerator: 'CmdOrCtrl+H',
-          role: 'hide'
-        },
-        {
-          label: 'Hide Others',
-          accelerator: 'CmdOrCtrl+Shift+H',
-          role: 'hideothers'
-        },
-        {
-          label: 'Show All',
-          role: 'unhide'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Quit',
-          accelerator: 'CmdOrCtrl+Q',
-          click: function () {
-            app.quit()
+        ]
+      },
+      {
+        label: 'File',
+        submenu: [
+          {
+            label: 'New Tab',
+            accelerator: 'CmdOrCtrl+T',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'addTab')
+            }
+          },
+          {
+            label: 'New Private Tab',
+            accelerator: 'Shift+CmdOrCtrl+P',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'addPrivateTab')
+            }
+          },
+          {
+            label: 'New Task',
+            accelerator: 'CmdOrCtrl+N',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'addTask')
+            }
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Save Page As',
+            accelerator: 'CmdOrCtrl+S',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'saveCurrentPage')
+            }
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Print',
+            accelerator: 'CmdOrCtrl+P',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'print')
+            }
           }
+        ]
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          {
+            label: 'Undo',
+            accelerator: 'CmdOrCtrl+Z',
+            role: 'undo'
+          },
+          {
+            label: 'Redo',
+            accelerator: 'Shift+CmdOrCtrl+Z',
+            role: 'redo'
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Cut',
+            accelerator: 'CmdOrCtrl+X',
+            role: 'cut'
+          },
+          {
+            label: 'Copy',
+            accelerator: 'CmdOrCtrl+C',
+            role: 'copy'
+          },
+          {
+            label: 'Paste',
+            accelerator: 'CmdOrCtrl+V',
+            role: 'paste'
+          },
+          {
+            label: 'Select All',
+            accelerator: 'CmdOrCtrl+A',
+            role: 'selectall'
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Find',
+            accelerator: 'CmdOrCtrl+F',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'findInPage')
+            }
+          }
+        ]
+      },
+      /* these items are added by os x */
+      {
+        label: 'View',
+        submenu: [
+          {
+            label: 'Zoom in',
+            accelerator: 'CmdOrCtrl+=',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'zoomIn')
+            }
+          },
+          {
+            label: 'Zoom out',
+            accelerator: 'CmdOrCtrl+-',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'zoomOut')
+            }
+          },
+          {
+            label: 'Actual size',
+            accelerator: 'CmdOrCtrl+0',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'zoomReset')
+            }
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Full Screen',
+            accelerator: 'Ctrl+Command+F',
+            role: 'togglefullscreen'
+          },
+          {
+            label: 'Focus mode',
+            accelerator: undefined,
+            type: 'checkbox',
+            checked: false,
+            click: function (item, window) {
+              if (isFocusMode) {
+                item.checked = false
+                isFocusMode = false
+                sendIPCToWindow(window, 'exitFocusMode')
+              } else {
+                item.checked = true
+                isFocusMode = true
+                sendIPCToWindow(window, 'enterFocusMode')
+              }
+            }
+          },
+          {
+            label: 'Reading List',
+            accelerator: undefined,
+            click: function (item, window) {
+              sendIPCToWindow(window, 'showReadingList')
+            }
+          }
+        ]
+      },
+      {
+        label: 'Developer',
+        submenu: [
+          {
+            label: 'Reload Browser',
+            accelerator: undefined,
+            click: function (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.reload()
+            }
+          },
+          {
+            label: 'Inspect browser',
+            click: function (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.toggleDevTools()
+            }
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Inspect page',
+            accelerator: 'Ctrl+Shift+I',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'inspectPage')
+            }
+          }
+        ]
+      },
+      {
+        label: 'Window',
+        role: 'window',
+        submenu: [
+          {
+            label: 'Minimize',
+            accelerator: 'CmdOrCtrl+M',
+            role: 'minimize'
+          },
+          {
+            label: 'Close',
+            accelerator: 'CmdOrCtrl+Shift+W',
+            role: 'close'
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Bring All to Front',
+            role: 'front'
+          }
+        ]
+      },
+      {
+        label: 'Help',
+        role: 'help',
+        submenu: [
+          {
+            label: 'Keyboard Shortcuts',
+            click: function () {
+              openTabInWindow('https://github.com/minbrowser/min/wiki#keyboard-shortcuts')
+            }
+          },
+          {
+            label: 'Report a Bug',
+            click: function () {
+              openTabInWindow('https://github.com/minbrowser/min/issues/new')
+            }
+          },
+          {
+            label: 'Take a Tour',
+            click: function () {
+              openTabInWindow('https://minbrowser.github.io/min/tour/')
+            }
+          },
+          {
+            label: 'View on GitHub',
+            click: function () {
+              openTabInWindow('https://github.com/minbrowser/min')
+            }
+          }
+        ]
+      },
+      {
+        label: 'Exit',
+        accelerator: 'CmdOrCtrl+Q',
+        click: function () {
+          app.quit()
         }
-      ]
-    })
-    // Window menu.
-    template[3].submenu.push({
-      type: 'separator'
-    }, {
-      label: 'Bring All to Front',
-      role: 'front'
-    })
-  }
-
-  // preferences item on linux and windows
-
-  if (process.platform !== 'darwin') {
-    template[1].submenu.push({
-      type: 'separator'
-    })
-
-    template[1].submenu.push({
-      label: 'Preferences',
-      accelerator: 'CmdOrCtrl+,',
-      click: function (item, window) {
-        sendIPCToWindow(window, 'addTab', {
-          url: 'file://' + __dirname + '/pages/settings/index.html'
-        })
       }
-    })
+    ]
+  } else {
+    var template = [
+      {
+        label: 'New Tab',
+        accelerator: 'CmdOrCtrl+T',
+        click: function (item, window) {
+          sendIPCToWindow(window, 'addTab')
+        }
+      },
+      {
+        label: 'New Private Tab',
+        accelerator: 'Shift+CmdOrCtrl+P',
+        click: function (item, window) {
+          sendIPCToWindow(window, 'addPrivateTab')
+        }
+      },
+      {
+        label: 'New Task',
+        accelerator: 'CmdOrCtrl+N',
+        click: function (item, window) {
+          sendIPCToWindow(window, 'addTask')
+        }
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Find...',
+        accelerator: 'CmdOrCtrl+F',
+        click: function (item, window) {
+          sendIPCToWindow(window, 'findInPage')
+        }
+      },
+      {
+        label: 'Print...',
+        accelerator: 'CmdOrCtrl+P',
+        click: function (item, window) {
+          sendIPCToWindow(window, 'print')
+        }
+      },
+      {
+        label: 'Save Page As...',
+        accelerator: 'CmdOrCtrl+S',
+        click: function (item, window) {
+          sendIPCToWindow(window, 'saveCurrentPage')
+        }
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'View',
+        submenu: [
+          {
+            label: 'Zoom in',
+            accelerator: 'CmdOrCtrl+=',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'zoomIn')
+            }
+          },
+          {
+            label: 'Zoom out',
+            accelerator: 'CmdOrCtrl+-',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'zoomOut')
+            }
+          },
+          {
+            label: 'Actual size',
+            accelerator: 'CmdOrCtrl+0',
+            click: function (item, window) {
+              sendIPCToWindow(window, 'zoomReset')
+            }
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Full Screen',
+            accelerator: 'F11',
+            role: 'togglefullscreen'
+          },
+          {
+            label: 'Focus mode',
+            accelerator: undefined,
+            type: 'checkbox',
+            checked: false,
+            click: function (item, window) {
+              if (isFocusMode) {
+                item.checked = false
+                isFocusMode = false
+                sendIPCToWindow(window, 'exitFocusMode')
+              } else {
+                item.checked = true
+                isFocusMode = true
+                sendIPCToWindow(window, 'enterFocusMode')
+              }
+            }
+          },
+          {
+            label: 'Reading List',
+            accelerator: undefined,
+            click: function (item, window) {
+              sendIPCToWindow(window, 'showReadingList')
+            }
+          }
+        ]
+      },
+      {
+        label: 'Developer',
+        submenu: [
+          {
+            label: 'Reload Browser',
+            accelerator: undefined,
+            click: function (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.reload()
+            }
+          },
+          {
+            label: 'Inspect browser',
+            click: function (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.toggleDevTools()
+            }
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: 'Inspect page',
+            accelerator: (function () {
+              if (process.platform == 'darwin')
+                return 'Cmd+Alt+I'
+              else
+                return 'Ctrl+Shift+I'
+            })(),
+            click: function (item, window) {
+              sendIPCToWindow(window, 'inspectPage')
+            }
+          }
+        ]
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Preferences',
+        accelerator: 'CmdOrCtrl+,',
+        click: function (item, window) {
+          sendIPCToWindow(window, 'addTab', {
+            url: 'file://' + __dirname + '/pages/settings/index.html'
+          })
+        }
+      },
+      {
+        label: 'Help',
+        role: 'help',
+        submenu: [
+          {
+            label: 'Keyboard Shortcuts',
+            click: function () {
+              openTabInWindow('https://github.com/minbrowser/min/wiki#keyboard-shortcuts')
+            }
+          },
+          {
+            label: 'Report a Bug',
+            click: function () {
+              openTabInWindow('https://github.com/minbrowser/min/issues/new')
+            }
+          },
+          {
+            label: 'Take a Tour',
+            click: function () {
+              openTabInWindow('https://minbrowser.github.io/min/tour/')
+            }
+          },
+          {
+            label: 'View on GitHub',
+            click: function () {
+              openTabInWindow('https://github.com/minbrowser/min')
+            }
+          }
+        ]
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Exit',
+        click: function () {
+          app.quit()
+        }
+      }
+    ]
   }
 
   mainMenu = Menu.buildFromTemplate(template)
