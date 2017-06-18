@@ -86,7 +86,7 @@ function addPrivateTab () {
 
 ipc.on('addPrivateTab', addPrivateTab)
 
-ipc.on('addTask', function () {
+function addTask () {
   /* new tasks can't be created in focus mode */
   if (isFocusMode) {
     showFocusModeError()
@@ -99,7 +99,9 @@ ipc.on('addTask', function () {
     taskOverlay.hide()
     enterEditMode(tabs.getSelected())
   }, 600)
-})
+}
+
+ipc.on('addTask', addTask)
 
 ipc.on('goBack', function () {
   try {
@@ -116,7 +118,15 @@ ipc.on('goForward', function () {
 var menuBarShortcuts = ['mod+t', 'shift+mod+p', 'mod+n'] // shortcuts that are already used for menu bar items
 
 function defineShortcut (keyMapName, fn) {
-  Mousetrap.bind(keyMap[keyMapName], function (e, combo) {
+  var shortcut = keyMap[keyMapName];
+
+  if (shortcut === undefined) {
+    return;
+  }
+
+  var action = ['option','alt'].indexOf(shortcut)>=0?'keyup':undefined; // if it's an option key then detect on release, so as not to interrupt system shortcuts (like alt+space in windows)
+
+  Mousetrap.bind(shortcut, function (e, combo) {
     // these shortcuts are already used by menu bar items, so also using them here would result in actions happening twice
     if (menuBarShortcuts.indexOf(combo) !== -1) {
       return
@@ -132,7 +142,7 @@ function defineShortcut (keyMapName, fn) {
       // other shortcuts can run immediately
       fn(e, combo)
     }
-  })
+  }, action)
 }
 
 settings.get('keyMap', function (keyMapSettings) {
@@ -320,8 +330,8 @@ settings.get('keyMap', function (keyMapSettings) {
     }
   })
 
-  defineShortcut('showAndHideMenuBar', function () {
-    toggleMenuBar()
+  defineShortcut('showMenu', function () {
+    showMenu()
   })
 }) // end settings.get
 
